@@ -332,6 +332,14 @@ function doPost(e) {
             devices: []
         };
 
+        function getTodayString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function generateId() {
             return 'dev_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         }
@@ -712,11 +720,18 @@ function doPost(e) {
         }
 
         function loadFromLocalStorage() {
+            const todayStr = getTodayString();
             try {
                 const saved = localStorage.getItem('elec_checklist_data');
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    if (parsed.inspectionDate) document.getElementById('inspectionDate').value = parsed.inspectionDate;
+                    // 저장된 점검 일자가 과거 날짜이면 오늘 날짜로 자동 업데이트
+                    if (parsed.inspectionDate && parsed.inspectionDate >= todayStr) {
+                        document.getElementById('inspectionDate').value = parsed.inspectionDate;
+                    } else {
+                        document.getElementById('inspectionDate').value = todayStr;
+                    }
+                    
                     if (parsed.inspectorName) document.getElementById('inspectorName').value = parsed.inspectorName;
                     if (parsed.inspectionDept) document.getElementById('inspectionDept').value = parsed.inspectionDept;
                     if (Array.isArray(parsed.devices) && parsed.devices.length > 0) {
@@ -727,6 +742,7 @@ function doPost(e) {
                 }
             } catch (e) {}
 
+            document.getElementById('inspectionDate').value = todayStr;
             const initDev = createNewDeviceObject('0000');
             appState.devices = [initDev];
             appState.activeTabId = initDev.id;
@@ -736,6 +752,7 @@ function doPost(e) {
             localStorage.removeItem('elec_checklist_data');
             document.getElementById('inspectorName').value = '';
             document.getElementById('inspectionDept').value = '';
+            document.getElementById('inspectionDate').value = getTodayString();
             
             const initDev = createNewDeviceObject('0000');
             appState.devices = [initDev];
@@ -745,10 +762,12 @@ function doPost(e) {
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('inspectionDate').value = new Date().toISOString().split('T')[0];
+            const todayStr = getTodayString();
+            document.getElementById('inspectionDate').value = todayStr;
             document.getElementById('currentTimestamp').innerText = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
 
             loadFromLocalStorage();
+            saveToLocalStorage();
 
             if (appState.googleScriptUrl) {
                 document.getElementById('googleScriptUrl').value = appState.googleScriptUrl;
