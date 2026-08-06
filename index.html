@@ -157,7 +157,7 @@
                         <i class="fa-solid fa-list-check text-sky-600"></i>
                         점검 대상 기기 목록
                     </h2>
-                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">기기별 개별 점검을 진행합니다.</p>
+                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">기기별 개별 점검 및 조치사항 입력을 진행합니다.</p>
                 </div>
                 
                 <button id="btnAddDevice" class="px-3 py-1.5 sm:py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-lg shadow-sm transition-all flex items-center gap-1 shrink-0 active:scale-95">
@@ -172,15 +172,6 @@
             <!-- Tab Content Panel Container -->
             <div id="deviceTabContents" class="p-3 sm:p-6"></div>
 
-        </section>
-
-        <!-- Summary & Remarks -->
-        <section class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 mb-6">
-            <h2 class="text-sm sm:text-base font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
-                <i class="fa-solid fa-comment-medical text-sky-600"></i>
-                종합 조치사항 및 비고
-            </h2>
-            <textarea id="overallRemarks" rows="2" placeholder="불량 항목에 대한 시정 조치 계획, 특이사항 등을 적어주세요." class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none"></textarea>
         </section>
 
         <!-- Bottom Action Sticky Bar -->
@@ -245,7 +236,7 @@ function doPost(e) {
         "제출일시", "점검일자", "점검자", "점검부서",
         "관리번호", "기기종류", "제조년월", "세부사용위치",
         "1.전선/플러그", "2.콘센트/멀티탭", "3.가연물이격", "4.전두/과열방지", "5.전원차단/타이머", "6.청결/먼지", "7.소화용구",
-        "기기별판정", "종합비고"
+        "기기별판정", "개별조치사항 및 비고"
       ]);
     }
     
@@ -253,7 +244,6 @@ function doPost(e) {
     var inspectionDate = data.inspectionDate || "";
     var inspectorName = data.inspectorName || "";
     var inspectionDept = data.inspectionDept || "";
-    var overallRemarks = data.overallRemarks || "";
     var devices = data.devicesRawData || [];
     
     if (devices.length > 0) {
@@ -270,15 +260,15 @@ function doPost(e) {
         var isDefect = isOver5 || Object.values(chk).indexOf("불량") !== -1;
         var devStatus = isDefect ? (isOver5 ? "불량(5년초과)" : "불량(시정필요)") : "양호";
         
-        // WHE- 접두사와 입력된 숫자를 합쳐서 시트에 기록
-        var fullMgmtNum = "WHE-" + (dev.mgmtNum || "");
+        var fullMgmtNum = "WE" + (dev.mgmtNum || "");
+        var devRemarks = dev.remarks || "";
         
         var rowData = [
           timestamp, inspectionDate, inspectorName, inspectionDept,
           fullMgmtNum, dev.deviceType || "", dev.mfgYM || "", dev.subLocation || "",
           chk.item1 || "양호", chk.item2 || "양호", chk.item3 || "양호", chk.item4 || "양호",
           chk.item5 || "양호", chk.item6 || "양호", chk.item7 || "양호",
-          devStatus, overallRemarks
+          devStatus, devRemarks
         ];
         sheet.appendRow(rowData);
       });
@@ -381,15 +371,14 @@ function doPost(e) {
         }
 
         function createNewDeviceObject(customNum = null) {
-            const deviceCount = appState.devices.length + 1;
+            const deviceCount = appState.devices.length;
             const devId = generateId();
             const checklistMap = {};
             COMMON_CHECKLIST_ITEMS.forEach(item => { checklistMap[item.id] = '양호'; });
 
             return {
                 id: devId,
-                // 숫자로 된 기본값 (001, 002 등)
-                mgmtNum: customNum !== null ? customNum : String(deviceCount).padStart(3, '0'),
+                mgmtNum: customNum !== null ? customNum : String(deviceCount).padStart(4, '0'),
                 mfgYM: new Date().toISOString().slice(0, 7),
                 deviceType: DEVICE_CATEGORIES[0].items[0],
                 subLocation: '',
@@ -403,7 +392,7 @@ function doPost(e) {
             appState.devices.push(newDev);
             appState.activeTabId = newDev.id;
             renderAll();
-            showToast(`새 기기 [WHE-${newDev.mgmtNum}] 추가됨`, 'info');
+            showToast(`새 기기 [WE${newDev.mgmtNum}] 추가됨`, 'info');
         }
 
         function removeDevice(devId, event) {
@@ -452,7 +441,7 @@ function doPost(e) {
 
                 tabBtn.innerHTML = `
                     <i class="fa-solid fa-plug text-[10px] ${isActive ? 'text-sky-600' : 'text-slate-400'}"></i>
-                    <span>기기${index + 1}: <strong>WHE-${dev.mgmtNum || '___'}</strong></span>
+                    <span>기기${index + 1}: <strong>WE${dev.mgmtNum || '____'}</strong></span>
                     <span class="px-1 py-0.2 text-[9px] rounded font-bold ${badgeColor}">${badgeText}</span>
                     <span onclick="removeDevice('${dev.id}', event)" title="삭제" class="ml-0.5 text-slate-400 hover:text-rose-600 p-0.5">
                         <i class="fa-solid fa-xmark"></i>
@@ -477,13 +466,13 @@ function doPost(e) {
             card.innerHTML = `
                 <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                     
-                    <!-- 관리번호: WHE- 고정 접두사 인풋 그룹 -->
+                    <!-- 관리번호 -->
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 mb-0.5">관리번호 <span class="text-rose-500">*</span></label>
                         <div class="flex items-center rounded-lg border border-slate-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-sky-500">
-                            <span class="px-2.5 py-1.5 bg-slate-100 text-slate-600 font-bold text-xs border-r border-slate-200 select-none">WHE-</span>
+                            <span class="px-2.5 py-1.5 bg-slate-100 text-slate-600 font-bold text-xs border-r border-slate-200 select-none">WE</span>
                             <input type="text" value="${currentDev.mgmtNum}" onchange="updateDeviceField('${currentDev.id}', 'mgmtNum', this.value)" 
-                                   placeholder="001" class="w-full px-2 py-1.5 text-xs sm:text-sm outline-none font-semibold text-slate-800">
+                                   placeholder="0000" class="w-full px-2 py-1.5 text-xs sm:text-sm outline-none font-semibold text-slate-800">
                         </div>
                     </div>
 
@@ -506,7 +495,7 @@ function doPost(e) {
 
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 mb-0.5">세부 사용 위치</label>
-                        <input type="text" value="${currentDev.subLocation}" onchange="updateDeviceField('${currentDev.id}', 'subLocation', this.value)" 
+                        <input type="text" value="${currentDev.subLocation || ''}" onchange="updateDeviceField('${currentDev.id}', 'subLocation', this.value)" 
                                placeholder="예: 본관 3층 사무실" class="w-full px-2.5 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
                     </div>
                 </div>
@@ -531,9 +520,8 @@ function doPost(e) {
                     </div>
                 </div>
 
-                <!-- Responsive Checklist: Mobile Card & Desktop Table -->
+                <!-- Responsive Checklist -->
                 <div class="space-y-2 sm:space-y-0 sm:border sm:border-slate-200 sm:rounded-xl sm:overflow-hidden sm:shadow-sm">
-                    
                     <!-- Mobile Card View -->
                     <div class="sm:hidden space-y-2">
                         ${COMMON_CHECKLIST_ITEMS.map(item => {
@@ -601,7 +589,19 @@ function doPost(e) {
                             }).join('')}
                         </tbody>
                     </table>
+                </div>
 
+                <!-- 기기별 독립된 조치사항 및 비고 입력란 -->
+                <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4 border border-slate-200">
+                    <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-comment-medical text-sky-600"></i>
+                        <span>[기기 WE${currentDev.mgmtNum || ''}] 조치사항 및 비고</span>
+                    </label>
+                    <textarea onchange="updateDeviceField('${currentDev.id}', 'remarks', this.value)" 
+                              oninput="updateDeviceField('${currentDev.id}', 'remarks', this.value)"
+                              rows="2" 
+                              placeholder="이 기기의 불량 항목 시정 조치 계획, 특이사항 등을 적어주세요." 
+                              class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none bg-white">${currentDev.remarks || ''}</textarea>
                 </div>
             `;
             container.appendChild(card);
@@ -611,8 +611,10 @@ function doPost(e) {
             const dev = appState.devices.find(d => d.id === devId);
             if (dev) {
                 dev[field] = value;
-                renderTabs();
-                renderTabContents();
+                saveToLocalStorage();
+                if (field === 'mgmtNum' || field === 'mfgYM') {
+                    renderTabs();
+                }
                 updateSummaryBadge();
             }
         }
@@ -646,20 +648,12 @@ function doPost(e) {
             saveToLocalStorage();
         }
 
-        function constructSingleRowPayload() {
+        function constructPayload() {
             const inspectionDate = document.getElementById('inspectionDate').value;
             const inspectorName = document.getElementById('inspectorName').value;
             const inspectionDept = document.getElementById('inspectionDept').value;
-            const overallRemarks = document.getElementById('overallRemarks').value;
 
             let overallStatus = appState.devices.some(d => isOver5Years(d.mfgYM) || Object.values(d.checklist).includes('불량')) ? '불량 (시정필요)' : '양호';
-
-            const devicesSummaryArr = appState.devices.map((d, idx) => {
-                const itemDetails = COMMON_CHECKLIST_ITEMS.map((item, i) => `${i+1}항:${d.checklist[item.id] || '양호'}`).join(', ');
-                const isDef = isOver5Years(d.mfgYM) || Object.values(d.checklist).includes('불량');
-                const devResult = isDef ? '불량' : '양호';
-                return `[기기${idx+1}] 번호:WHE-${d.mgmtNum} / 종류:${d.deviceType} / 제조년월:${d.mfgYM} / 위치:${d.subLocation || '미지정'} / 종합판정:${devResult} / 상세:(${itemDetails})`;
-            });
 
             return {
                 timestamp: new Date().toLocaleString('ko-KR'),
@@ -668,14 +662,12 @@ function doPost(e) {
                 inspectionDept,
                 totalDeviceCount: appState.devices.length,
                 overallStatus,
-                devicesSummaryString: devicesSummaryArr.join(' \n\n '),
-                overallRemarks,
                 devicesRawData: appState.devices
             };
         }
 
         async function submitToGoogleSheets() {
-            const payload = constructSingleRowPayload();
+            const payload = constructPayload();
             if (!payload.inspectionDate || !payload.inspectorName || !payload.inspectionDept) {
                 showToast('기본 필수 정보(일자, 성명, 부서)를 입력해주세요.', 'error');
                 return;
@@ -689,7 +681,7 @@ function doPost(e) {
             const btn = document.getElementById('btnSubmitGoogle');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 전송중...';
 
             try {
                 await fetch(appState.googleScriptUrl, {
@@ -713,7 +705,6 @@ function doPost(e) {
                     inspectionDate: document.getElementById('inspectionDate').value,
                     inspectorName: document.getElementById('inspectorName').value,
                     inspectionDept: document.getElementById('inspectionDept').value,
-                    overallRemarks: document.getElementById('overallRemarks').value,
                     devices: appState.devices
                 };
                 localStorage.setItem('elec_checklist_data', JSON.stringify(dataToSave));
@@ -728,7 +719,6 @@ function doPost(e) {
                     if (parsed.inspectionDate) document.getElementById('inspectionDate').value = parsed.inspectionDate;
                     if (parsed.inspectorName) document.getElementById('inspectorName').value = parsed.inspectorName;
                     if (parsed.inspectionDept) document.getElementById('inspectionDept').value = parsed.inspectionDept;
-                    if (parsed.overallRemarks) document.getElementById('overallRemarks').value = parsed.overallRemarks;
                     if (Array.isArray(parsed.devices) && parsed.devices.length > 0) {
                         appState.devices = parsed.devices;
                         appState.activeTabId = appState.devices[0].id;
@@ -737,7 +727,7 @@ function doPost(e) {
                 }
             } catch (e) {}
 
-            const initDev = createNewDeviceObject('001');
+            const initDev = createNewDeviceObject('0000');
             appState.devices = [initDev];
             appState.activeTabId = initDev.id;
         }
@@ -746,9 +736,8 @@ function doPost(e) {
             localStorage.removeItem('elec_checklist_data');
             document.getElementById('inspectorName').value = '';
             document.getElementById('inspectionDept').value = '';
-            document.getElementById('overallRemarks').value = '';
             
-            const initDev = createNewDeviceObject('001');
+            const initDev = createNewDeviceObject('0000');
             appState.devices = [initDev];
             appState.activeTabId = initDev.id;
             renderAll();
@@ -775,7 +764,7 @@ function doPost(e) {
                 renderAll();
             });
 
-            ['inspectionDate', 'inspectorName', 'inspectionDept', 'overallRemarks'].forEach(id => {
+            ['inspectionDate', 'inspectorName', 'inspectionDept'].forEach(id => {
                 document.getElementById(id).addEventListener('input', saveToLocalStorage);
             });
 
