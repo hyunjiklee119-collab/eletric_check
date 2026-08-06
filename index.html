@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>전열·전기기구 자율점검표 웹앱</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -39,6 +39,7 @@
             font-family: 'Noto Sans KR', sans-serif;
             background-color: #f8fafc;
             color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
         }
         .tab-active {
             border-bottom: 3px solid #0284c7;
@@ -46,10 +47,9 @@
             font-weight: 700;
             background-color: #f0f9ff;
         }
-        /* Custom scrollbars */
         ::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
+            height: 4px;
+            width: 4px;
         }
         ::-webkit-scrollbar-track {
             background: #f1f5f9;
@@ -58,11 +58,6 @@
             background: #cbd5e1;
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        /* Print styling rules */
         @media print {
             .no-print {
                 display: none !important;
@@ -79,37 +74,33 @@
                 margin: 0 !important;
                 width: 100% !important;
             }
-            .page-break {
-                page-break-before: always;
-            }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between antialiased">
+<body class="min-h-screen flex flex-col justify-between antialiased pb-20 sm:pb-0">
 
     <!-- Top Header -->
     <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30 no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-inner">
+        <div class="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shadow-inner shrink-0">
                     <i class="fa-solid fa-plug-circle-bolt"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                        전열·전기기구 자율점검표
-                        <span class="text-xs font-normal px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">스마트 현장용</span>
+                    <h1 class="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+                        전열·전기기구 점검
+                        <span class="text-[10px] sm:text-xs font-normal px-1.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">스마트 현장용</span>
                     </h1>
-                    <p class="text-xs text-slate-400 hidden sm:block">동절기 및 평시 전기화재 예방을 위한 모바일/PC 자율점검 시스템</p>
+                    <p class="text-[11px] text-slate-400 hidden sm:block">동절기 및 평시 전기화재 예방을 위한 모바일/PC 자율점검 시스템</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
-                <button id="btnOpenScriptModal" class="px-3 py-1.5 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+            <div class="flex items-center gap-1.5">
+                <button id="btnOpenScriptModal" class="px-2.5 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-colors flex items-center gap-1 shadow-sm">
                     <i class="fa-solid fa-table-cells text-amber-200"></i>
-                    <span class="hidden md:inline">구글시트 연동설정</span>
-                    <span class="md:hidden">구글시트</span>
+                    <span>구글시트</span>
                 </button>
-                <button id="btnResetAll" class="px-3 py-1.5 text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg transition-colors flex items-center gap-1">
+                <button id="btnResetAll" class="px-2.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg transition-colors flex items-center gap-1">
                     <i class="fa-solid fa-rotate-right"></i>
                     <span class="hidden sm:inline">초기화</span>
                 </button>
@@ -117,115 +108,100 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 print-container">
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1 print-container">
         
         <!-- Status Notification Bar -->
-        <div id="googleSheetsAlert" class="mb-5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs sm:text-sm text-amber-800 no-print">
-            <div class="flex items-center gap-2.5">
-                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base"></i>
-                <span>현재 <strong>기본 데모 웹후크(또는 미연동)</strong> 상태입니다. 구글시트에 점검 결과를 전송하려면 상단 <strong>[구글시트 연동설정]</strong>을 완료해주세요.</span>
+        <div id="googleSheetsAlert" class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start justify-between text-xs text-amber-800 no-print">
+            <div class="flex items-start gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm mt-0.5 shrink-0"></i>
+                <span>현재 <strong>미연동 상태</strong>입니다. 구글시트에 점검 결과를 전송하려면 상단 <strong>[구글시트]</strong> 버튼을 눌러 연동 설정을 완료해 주세요.</span>
             </div>
-            <button onclick="document.getElementById('googleSheetsAlert').classList.add('hidden')" class="text-amber-600 hover:text-amber-800 px-1">
-                <i class="fa-solid fa-xmark"></i>
+            <button onclick="document.getElementById('googleSheetsAlert').classList.add('hidden')" class="text-amber-600 hover:text-amber-800 px-1 shrink-0">
+                <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
 
         <!-- General Inspection Header Info Form -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
-            <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+        <section class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 mb-4 sm:mb-6">
+            <div class="flex flex-wrap items-center justify-between mb-3 pb-2 border-b border-slate-100 gap-1">
+                <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-1.5">
                     <i class="fa-solid fa-clipboard-user text-sky-600"></i>
                     기본 점검 정보
                 </h2>
-                <span class="text-xs text-slate-500 font-medium">작성일시: <span id="currentTimestamp" class="text-slate-700 font-semibold"></span></span>
+                <span class="text-[11px] sm:text-xs text-slate-500 font-medium">작성일시: <span id="currentTimestamp" class="text-slate-700 font-semibold"></span></span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">점검 일자 <span class="text-rose-500">*</span></label>
-                    <input type="date" id="inspectionDate" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                    <input type="date" id="inspectionDate" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">점검자 성명 <span class="text-rose-500">*</span></label>
-                    <input type="text" id="inspectorName" placeholder="예: 홍길동" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                    <input type="text" id="inspectorName" placeholder="예: 홍길동" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">점검 부서 <span class="text-rose-500">*</span></label>
-                    <input type="text" id="inspectionDept" placeholder="예: 시설관리팀" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">설치 장소 <span class="text-rose-500">*</span></label>
-                    <input type="text" id="inspectionLocation" placeholder="예: 본관 3층 사무실" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition">
+                    <input type="text" id="inspectionDept" placeholder="예: 시설관리팀" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
                 </div>
             </div>
         </section>
 
         <!-- Device Management & Inspection Section -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+        <section class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-4 sm:mb-6">
             
             <!-- Section Header & Add Device Action -->
-            <div class="p-4 sm:p-5 bg-slate-50/80 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+            <div class="p-3.5 sm:p-5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between gap-2">
                 <div>
-                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-1.5">
                         <i class="fa-solid fa-list-check text-sky-600"></i>
-                        점검 대상 기기 목록 및 점검표
+                        점검 대상 기기 목록
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">점검할 기기를 추가하여 관리번호별로 개별 점검을 수행합니다. (모든 기기 점검 결과는 구글 시트에 1개 행으로 합쳐져 저장됩니다.)</p>
+                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">기기별 개별 점검을 진행합니다.</p>
                 </div>
                 
-                <div class="flex items-center gap-2">
-                    <button id="btnAddDevice" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-sm transition-all flex items-center gap-1.5 active:scale-95">
-                        <i class="fa-solid fa-circle-plus"></i>
-                        <span>기기 추가 (+1)</span>
-                    </button>
-                </div>
+                <button id="btnAddDevice" class="px-3 py-1.5 sm:py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs rounded-lg shadow-sm transition-all flex items-center gap-1 shrink-0 active:scale-95">
+                    <i class="fa-solid fa-circle-plus"></i>
+                    <span>기기 추가</span>
+                </button>
             </div>
 
             <!-- Device Tabs Nav Bar -->
-            <div class="bg-slate-100 border-b border-slate-200 px-3 pt-2 flex items-center gap-1 overflow-x-auto no-print" id="deviceTabsList">
-                <!-- Dynamic Tabs injected by JS -->
-            </div>
+            <div class="bg-slate-100 border-b border-slate-200 px-2 pt-2 flex items-center gap-1 overflow-x-auto no-print" id="deviceTabsList"></div>
 
             <!-- Tab Content Panel Container -->
-            <div id="deviceTabContents" class="p-4 sm:p-6">
-                <!-- Dynamic Device Checklist Panels injected by JS -->
-            </div>
+            <div id="deviceTabContents" class="p-3 sm:p-6"></div>
 
         </section>
 
         <!-- Summary & Remarks -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-8">
-            <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+        <section class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 mb-6">
+            <h2 class="text-sm sm:text-base font-bold text-slate-800 mb-2.5 flex items-center gap-1.5">
                 <i class="fa-solid fa-comment-medical text-sky-600"></i>
                 종합 조치사항 및 비고
             </h2>
-            <textarea id="overallRemarks" rows="3" placeholder="불량 항목에 대한 시정 조치 계획, 특이사항 또는 미사용 기기 회수 내역 등을 자유롭게 적어주세요." class="w-full p-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition"></textarea>
+            <textarea id="overallRemarks" rows="2" placeholder="불량 항목에 대한 시정 조치 계획, 특이사항 등을 적어주세요." class="w-full p-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none"></textarea>
         </section>
 
         <!-- Bottom Action Sticky Bar -->
-        <div class="no-print bg-white/90 backdrop-blur-md border border-slate-200 p-4 rounded-2xl shadow-lg sticky bottom-4 flex flex-wrap items-center justify-between gap-3 z-20">
-            <div class="flex items-center gap-3">
-                <span class="text-xs sm:text-sm text-slate-600">
-                    총 등록 기기: <strong id="summaryTotalCount" class="text-sky-600">1</strong>대
+        <div class="no-print bg-white/95 backdrop-blur-md border border-slate-200 p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-lg fixed sm:sticky bottom-2 left-2 right-2 sm:bottom-4 flex flex-col sm:flex-row items-center justify-between gap-2.5 z-20">
+            <div class="flex items-center justify-between w-full sm:w-auto px-1">
+                <span class="text-xs text-slate-600">
+                    총 기기: <strong id="summaryTotalCount" class="text-sky-600">1</strong>대
                 </span>
-                <span class="text-slate-300">|</span>
-                <span class="text-xs sm:text-sm text-slate-600">
-                    종합 판정: <span id="summaryStatusBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">점검중</span>
+                <span class="text-xs text-slate-600">
+                    종합 판정: <span id="summaryStatusBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">점검중</span>
                 </span>
             </div>
 
-            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <button id="btnPrint" class="px-4 py-2.5 text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-300 transition-colors flex items-center gap-1.5">
+            <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                <button id="btnPrint" class="px-3 py-2 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg border border-slate-300 transition-colors flex items-center justify-center gap-1">
                     <i class="fa-solid fa-print"></i>
-                    <span>인쇄/PDF</span>
+                    <span>인쇄 / PDF</span>
                 </button>
-                <button id="btnExportCSV" class="px-4 py-2.5 text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-300 transition-colors flex items-center gap-1.5">
-                    <i class="fa-solid fa-file-csv text-emerald-600"></i>
-                    <span>CSV 다운로드</span>
-                </button>
-                <button id="btnSubmitGoogle" class="px-5 py-2.5 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 active:scale-95">
+                <button id="btnSubmitGoogle" class="px-4 py-2 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95">
                     <i class="fa-solid fa-paper-plane"></i>
-                    <span>구글시트로 점검 결과 제출</span>
+                    <span>구글 시트 제출</span>
                 </button>
             </div>
         </div>
@@ -233,173 +209,133 @@
     </main>
 
     <!-- Google Apps Script Settings Modal -->
-    <div id="scriptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden transform transition-all">
-            
-            <!-- Modal Header -->
-            <div class="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-table-cells text-amber-400 text-xl"></i>
-                    <h3 class="font-bold text-base sm:text-lg">구글 시트 연동 (Google Apps Script) 설정</h3>
+    <div id="scriptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-3.5 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-table-cells text-amber-400 text-base"></i>
+                    <h3 class="font-bold text-sm sm:text-base">구글 시트 연동 설정</h3>
                 </div>
-                <button id="btnCloseScriptModal" class="text-slate-400 hover:text-white text-lg px-2 py-1">
+                <button id="btnCloseScriptModal" class="text-slate-400 hover:text-white text-base px-2 py-1">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Modal Body -->
-            <div class="p-5 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-600">
-                
-                <div class="bg-sky-50 border border-sky-200 rounded-xl p-3.5 text-sky-900">
-                    <p class="font-bold mb-1"><i class="fa-solid fa-circle-info text-sky-600 mr-1"></i> 작동 원리</p>
-                    <p class="text-xs leading-relaxed">구글 스프레드시트의 <strong>[확장 프로그램] &gt; [Apps Script]</strong>에 아래 스크립트를 붙여넣고 웹 앱으로 배포하면, <strong>여러 개의 기기를 점검하더라도 1회의 제출 시 1개 행(Row)으로 정돈되어 자동 기록</strong>됩니다.</p>
-                </div>
-
-                <!-- Webhook URL Input -->
+            <div class="p-4 overflow-y-auto space-y-3 text-xs text-slate-600">
                 <div>
-                    <label class="block font-bold text-slate-800 mb-1">구글 웹앱 URL (Apps Script Web App Webhook URL)</label>
-                    <input type="url" id="googleScriptUrl" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none font-mono">
-                    <p class="text-[11px] text-slate-400 mt-1">배포된 Apps Script 웹 앱 URL 주소를 여기에 입력하고 저장하세요.</p>
+                    <label class="block font-bold text-slate-800 mb-1">구글 웹앱 URL</label>
+                    <input type="url" id="googleScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none font-mono">
                 </div>
 
-                <!-- Step Guide -->
-                <div class="border-t border-slate-200 pt-3">
-                    <h4 class="font-bold text-slate-800 mb-2">설치 및 연동 방법 (3단계):</h4>
-                    <ol class="list-decimal list-inside space-y-1.5 text-xs text-slate-600">
-                        <li>새 구글 스프레드시트 생성 후 상단 메뉴 <strong>[확장 프로그램] &gt; [Apps Script]</strong> 클릭</li>
-                        <li>기존 코드를 모두 삭제하고, 아래 **[스크립트 코드 복사]** 버튼을 눌러 붙여넣기</li>
-                        <li>우측 상단 <strong>[배포] &gt; [새 배포]</strong> 선택 후, <i>유형: 웹 앱</i>, <i>액세스 권한: 모든 사용자(Anyone)</i>로 배포 후 URL 복사!</li>
-                    </ol>
-                </div>
-
-                <!-- Script Code Box -->
                 <div class="relative">
-                    <div class="flex items-center justify-between bg-slate-800 text-slate-300 text-xs px-3 py-1.5 rounded-t-lg">
+                    <div class="flex items-center justify-between bg-slate-800 text-slate-300 text-[11px] px-3 py-1 rounded-t-lg">
                         <span>Google Apps Script (Code.gs)</span>
-                        <button id="btnCopyScriptCode" class="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1">
-                            <i class="fa-regular fa-copy"></i> 코드 복사
+                        <button id="btnCopyScriptCode" class="text-amber-300 font-bold flex items-center gap-1">
+                            <i class="fa-regular fa-copy"></i> 복사
                         </button>
                     </div>
-                    <pre class="bg-slate-900 text-emerald-400 p-3 rounded-b-lg font-mono text-[11px] leading-relaxed overflow-x-auto max-h-48 border border-slate-800" id="gasCodeText">
+                    <pre class="bg-slate-900 text-emerald-400 p-2.5 rounded-b-lg font-mono text-[10px] leading-relaxed overflow-x-auto max-h-40 border border-slate-800" id="gasCodeText">
 function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var data = JSON.parse(e.postData.contents);
     
-    // 헤더가 없으면 자동 생성
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
-        "제출일시", "점검일자", "점검자", "점검부서", "설치장소", 
-        "총기기수", "종합판정", "기기점검 요약데이터", "종합비고"
+        "제출일시", "점검일자", "점검자", "점검부서",
+        "관리번호", "기기종류", "제조년월", "세부사용위치",
+        "1.전선/플러그", "2.콘센트/멀티탭", "3.가연물이격", "4.전두/과열방지", "5.전원차단/타이머", "6.청결/먼지", "7.소화용구",
+        "기기별판정", "종합비고"
       ]);
     }
     
-    // 행 데이터 준비
-    var rowData = [
-      data.timestamp || new Date().toLocaleString("ko-KR"),
-      data.inspectionDate || "",
-      data.inspectorName || "",
-      data.inspectionDept || "",
-      data.inspectionLocation || "",
-      data.totalDeviceCount || 0,
-      data.overallStatus || "",
-      data.devicesSummaryString || "",
-      data.overallRemarks || ""
-    ];
+    var timestamp = data.timestamp || new Date().toLocaleString("ko-KR");
+    var inspectionDate = data.inspectionDate || "";
+    var inspectorName = data.inspectorName || "";
+    var inspectionDept = data.inspectionDept || "";
+    var overallRemarks = data.overallRemarks || "";
+    var devices = data.devicesRawData || [];
     
-    // 데이터 저장
-    sheet.appendRow(rowData);
-    
-    return ContentService.createTextOutput(JSON.stringify({ "result": "success" }))
-      .setMimeType(ContentService.MimeType.JSON);
+    if (devices.length > 0) {
+      devices.forEach(function(dev) {
+        var chk = dev.checklist || {};
+        var isOver5 = false;
+        if (dev.mfgYM && inspectionDate) {
+          var inspD = new Date(inspectionDate);
+          var mfgParts = dev.mfgYM.split('-').map(Number);
+          var mfgD = new Date(mfgParts[0], mfgParts[1] - 1, 1);
+          var diffMonths = (inspD.getFullYear() - mfgD.getFullYear()) * 12 + (inspD.getMonth() - mfgD.getMonth());
+          if (diffMonths > 60) isOver5 = true;
+        }
+        var isDefect = isOver5 || Object.values(chk).indexOf("불량") !== -1;
+        var devStatus = isDefect ? (isOver5 ? "불량(5년초과)" : "불량(시정필요)") : "양호";
+        
+        // WHE- 접두사와 입력된 숫자를 합쳐서 시트에 기록
+        var fullMgmtNum = "WHE-" + (dev.mgmtNum || "");
+        
+        var rowData = [
+          timestamp, inspectionDate, inspectorName, inspectionDept,
+          fullMgmtNum, dev.deviceType || "", dev.mfgYM || "", dev.subLocation || "",
+          chk.item1 || "양호", chk.item2 || "양호", chk.item3 || "양호", chk.item4 || "양호",
+          chk.item5 || "양호", chk.item6 || "양호", chk.item7 || "양호",
+          devStatus, overallRemarks
+        ];
+        sheet.appendRow(rowData);
+      });
+    }
+    return ContentService.createTextOutput(JSON.stringify({ "result": "success" })).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ "result": "error", "message": error.toString() })).setMimeType(ContentService.MimeType.JSON);
   }
 }</pre>
                 </div>
-
             </div>
 
-            <!-- Modal Footer -->
-            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-                <button id="btnSaveScriptUrl" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs sm:text-sm rounded-lg shadow-sm transition-colors">
-                    설정 저장하기
+            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <button id="btnSaveScriptUrl" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-lg shadow-sm">
+                    설정 저장
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Custom Alert/Toast Notification System -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
+    <!-- Toast Notification System -->
+    <div id="toastContainer" class="fixed top-3 right-3 left-3 sm:left-auto z-50 flex flex-col gap-1.5 pointer-events-none no-print"></div>
 
-    <!-- Footer -->
-    <footer class="bg-slate-100 border-t border-slate-200 py-4 text-center text-xs text-slate-500 no-print">
-        <p>전열·전기기구 자율점검표 스마트 웹앱 &copy; 2026. 모든 데이터는 브라우저 및 연동된 구글시트에만 안전하게 기록됩니다.</p>
+    <footer class="bg-slate-100 border-t border-slate-200 py-3 text-center text-[10px] sm:text-xs text-slate-500 no-print">
+        <p>전열·전기기구 자율점검표 스마트 웹앱 &copy; 2026</p>
     </footer>
 
-
     <script>
-        // Standard Inspection Criteria Checklist (공용 점검 양식 7개 항목)
         const COMMON_CHECKLIST_ITEMS = [
-            { id: 'item1', title: '1. 전선 및 플러그 피복 상태', desc: '전선의 피복 손상, 피복 누출, 피복 테이핑 상태, 플러그 과열 변색 유무' },
-            { id: 'item2', title: '2. 콘센트 및 멀티탭 사용 상태', desc: '문전/콘센트 과부하 다중 연결(문전 연결) 금지 및 문전 플러그 헐거움 유무' },
-            { id: 'item3', title: '3. 가연성 물질 이격 거리', desc: '히터/발열체 주변 1m 이내 종이, 의류, 박스 등 가염물 이격 배치 여부' },
-            { id: 'item4', title: '4. 전두(넘어짐) 및 과열 방지 안전장치', desc: '기기 기울임/넘어짐 시 자동 전원 차단 스위치 동작 및 온도조절기 정상 작동' },
-            { id: 'item5', title: '5. 사용 후 전원 차단 및 타이머', desc: '퇴근 시/미사용 시 플러그 차단, 자동 소화 타이머 장치 작동 확인' },
-            { id: 'item6', title: '6. 청결 및 발열체 먼지 누적', desc: '발열 부위 및 통풍구 내부 먼지/이물질 쌓임 유무 (화재 원인 제거)' },
-            { id: 'item7', title: '7. 주변 소화용구 비치 상태', desc: '인근 장소에 분말 소화기 비치 및 점검 일자 유효 여부' }
+            { id: 'item1', title: '1. 전선 및 플러그 피복 상태', desc: '손상, 테이핑 상태, 과열 변색 유무' },
+            { id: 'item2', title: '2. 콘센트 및 멀티탭 상태', desc: '문전 과부하 다중 연결 금지 및 헐거움 유무' },
+            { id: 'item3', title: '3. 가연성 물질 이격 거리', desc: '발열체 주변 1m 이내 가염물 배치 여부' },
+            { id: 'item4', title: '4. 넘어짐 및 과열 방지 장치', desc: '자동 전원 차단 스위치 및 온도조절기 작동' },
+            { id: 'item5', title: '5. 사용 후 전원 차단 및 타이머', desc: '미사용 시 플러그 차단, 타이머 작동 확인' },
+            { id: 'item6', title: '6. 청결 및 발열체 먼지 누적', desc: '발열 부위 및 통풍구 먼지/이물질 유무' },
+            { id: 'item7', title: '7. 주변 소화용구 비치 상태', desc: '분말 소화기 비치 및 점검 일자 유효 여부' }
         ];
 
-        // Detailed & Categorized Device Types Preset (전열기구 및 전기기구 세분화)
         const DEVICE_CATEGORIES = [
             {
                 category: '🔥 전열기구 (난방/발열)',
-                items: [
-                    '전기히터 / 라디에이터',
-                    '석영관 / 원적외선 / 튜브 히터',
-                    '전기 온풍기 / 팬히터',
-                    'PTC 히터 / 발난로',
-                    '전기장판 / 온수매트 / 전기요',
-                    '전기방석 / 온열 찜질기',
-                    '동파방지 열선 / 열선 제어기',
-                    '산업용 열풍기 / 가열기'
-                ]
+                items: ['전기히터 / 라디에이터', '전기 온풍기 / 팬히터', '전기장판 / 온수매트 / 전기요', '전기방석 / 온열 찜질기', '드라이기 / 고데기']
             },
             {
                 category: '☕ 전열기구 (조리/음료/주방)',
-                items: [
-                    '전기포트 / 커피포트 / 핫디스펜서',
-                    '정수기 / 냉온수기',
-                    '전자레인지 / 전기오븐',
-                    '인덕션 / 전기레인지 / 하이라이트',
-                    '식기건조기 / 전기식기세척기'
-                ]
+                items: ['전기포트 / 커피포트 / 핫디스펜서', '정수기 / 냉온수기', '전자레인지 / 전기오븐', '인덕션 / 전기레인지 / 하이라이트', '식기건조기 / 전기식기세척기']
             },
             {
                 category: '⚡ 전기기구 (배선/공조/사무)',
-                items: [
-                    '멀티탭 / 이동형 연장릴선',
-                    '이동식 에어컨 / 제습기 / 가습기',
-                    '공기청정기 / 환기팬',
-                    '냉장고 / 냉동고 / 김치냉장고',
-                    'PC / 모니터 / OA 사무기기',
-                    '배터리 충전기 / 충전 거치대'
-                ]
+                items: ['유·무선 선풍기', '이동식 냉풍기' ,'제습기 / 가습기', '공기청정기 / 환기팬', '냉장고 / 냉동고', '배터리 충전기 / 충전 거치대']
             },
             {
-                category: '🛠️ 전기기구 (현장/작업/기타)',
-                items: [
-                    '휴대용 전동공구 (그라인더, 드릴 등)',
-                    '작업용 투광기 / 이동식 작업등',
-                    '분전함 / 이동식 수전반',
-                    '기타 전열기구',
-                    '기타 전기기구'
-                ]
+                category: '🔌 기타 전열·전기기구', 
+                items: ['휴대용 전동공구 (그라인더, 드릴 등)', '작업용 투광기 / 이동식 작업등', '분전함 / 이동식 수전반', '기타 전열기구', '기타 전기기구']
             }
         ];
 
-        // State Store
         let appState = {
             googleScriptUrl: localStorage.getItem('elec_gas_url') || '',
             activeTabId: null,
@@ -410,10 +346,22 @@ function doPost(e) {
             return 'dev_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
         }
 
+        function isOver5Years(mfgYM) {
+            if (!mfgYM) return false;
+            const inspDateVal = document.getElementById('inspectionDate')?.value;
+            const inspDate = inspDateVal ? new Date(inspDateVal) : new Date();
+            
+            const [year, month] = mfgYM.split('-').map(Number);
+            const mfgDate = new Date(year, month - 1, 1);
+            
+            const diffMonths = (inspDate.getFullYear() - mfgDate.getFullYear()) * 12 + (inspDate.getMonth() - mfgDate.getMonth());
+            return diffMonths > 60;
+        }
+
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 ${
+            toast.className = `pointer-events-auto px-3.5 py-2.5 rounded-xl shadow-md border text-xs font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 ${
                 type === 'success' ? 'bg-emerald-800 text-emerald-100 border-emerald-700' :
                 type === 'error' ? 'bg-rose-800 text-rose-100 border-rose-700' :
                 'bg-slate-800 text-slate-100 border-slate-700'
@@ -425,30 +373,24 @@ function doPost(e) {
             toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
             container.appendChild(toast);
 
-            setTimeout(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            }, 10);
-
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            }, 3000);
         }
 
         function createNewDeviceObject(customNum = null) {
             const deviceCount = appState.devices.length + 1;
             const devId = generateId();
-            
-            // Build default checklist map
             const checklistMap = {};
-            COMMON_CHECKLIST_ITEMS.forEach(item => {
-                checklistMap[item.id] = '양호'; // default
-            });
+            COMMON_CHECKLIST_ITEMS.forEach(item => { checklistMap[item.id] = '양호'; });
 
             return {
                 id: devId,
-                mgmtNum: customNum || `ELEC-2026-${String(deviceCount).padStart(2, '0')}`,
-                mfgYM: new Date().toISOString().slice(0, 7), // YYYY-MM
+                // 숫자로 된 기본값 (001, 002 등)
+                mgmtNum: customNum !== null ? customNum : String(deviceCount).padStart(3, '0'),
+                mfgYM: new Date().toISOString().slice(0, 7),
                 deviceType: DEVICE_CATEGORIES[0].items[0],
                 subLocation: '',
                 checklist: checklistMap,
@@ -461,33 +403,29 @@ function doPost(e) {
             appState.devices.push(newDev);
             appState.activeTabId = newDev.id;
             renderAll();
-            showToast(`새 기기 [${newDev.mgmtNum}]가 추가되었습니다.`, 'info');
+            showToast(`새 기기 [WHE-${newDev.mgmtNum}] 추가됨`, 'info');
         }
 
         function removeDevice(devId, event) {
             if (event) event.stopPropagation();
             if (appState.devices.length <= 1) {
-                showToast('최소 1개 이상의 기기 점검 항목이 유지되어야 합니다.', 'error');
+                showToast('최소 1개 이상의 기기 항목이 유지되어야 합니다.', 'error');
                 return;
             }
-
             appState.devices = appState.devices.filter(d => d.id !== devId);
             if (appState.activeTabId === devId) {
                 appState.activeTabId = appState.devices[0].id;
             }
             renderAll();
-            showToast('기기 항목이 삭제되었습니다.', 'info');
+            showToast('기기가 삭제되었습니다.', 'info');
         }
 
         function setChecklistAll(devId, statusValue) {
             const dev = appState.devices.find(d => d.id === devId);
             if (!dev) return;
-            
-            COMMON_CHECKLIST_ITEMS.forEach(item => {
-                dev.checklist[item.id] = statusValue;
-            });
+            COMMON_CHECKLIST_ITEMS.forEach(item => { dev.checklist[item.id] = statusValue; });
             renderAll();
-            showToast(`기기 [${dev.mgmtNum}]의 모든 점검 항목이 '${statusValue}'(으)로 설정되었습니다.`, 'success');
+            showToast(`전체 항목 '${statusValue}' 설정 완료`, 'success');
         }
 
         function renderTabs() {
@@ -496,15 +434,15 @@ function doPost(e) {
 
             appState.devices.forEach((dev, index) => {
                 const isActive = dev.id === appState.activeTabId;
+                const isOver5 = isOver5Years(dev.mfgYM);
+                const hasDefect = isOver5 || Object.values(dev.checklist).includes('불량');
                 
-                // Calculate device pass/fail preview
-                const hasDefect = Object.values(dev.checklist).includes('불량');
                 const badgeColor = hasDefect ? 'bg-rose-500 text-white' : 'bg-emerald-100 text-emerald-800';
-                const badgeText = hasDefect ? '불량' : '양호';
+                const badgeText = hasDefect ? (isOver5 ? '5년초과(불량)' : '불량') : '양호';
 
                 const tabBtn = document.createElement('button');
-                tabBtn.className = `flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-medium rounded-t-xl transition-all whitespace-nowrap border-t border-x border-transparent ${
-                    isActive ? 'tab-active bg-white border-slate-200 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                tabBtn.className = `flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-t-lg transition-all whitespace-nowrap border-t border-x border-transparent ${
+                    isActive ? 'tab-active bg-white border-slate-200 shadow-sm' : 'text-slate-600 hover:bg-slate-200/60'
                 }`;
                 
                 tabBtn.onclick = () => {
@@ -513,14 +451,13 @@ function doPost(e) {
                 };
 
                 tabBtn.innerHTML = `
-                    <i class="fa-solid fa-plug text-xs ${isActive ? 'text-sky-600' : 'text-slate-400'}"></i>
-                    <span>기기 ${index + 1}: <strong>${dev.mgmtNum || '미입력'}</strong></span>
-                    <span class="px-1.5 py-0.2 text-[10px] rounded font-semibold ${badgeColor}">${badgeText}</span>
-                    <span onclick="removeDevice('${dev.id}', event)" title="기기 삭제" class="ml-1 text-slate-400 hover:text-rose-600 px-1 py-0.5 rounded hover:bg-rose-50">
+                    <i class="fa-solid fa-plug text-[10px] ${isActive ? 'text-sky-600' : 'text-slate-400'}"></i>
+                    <span>기기${index + 1}: <strong>WHE-${dev.mgmtNum || '___'}</strong></span>
+                    <span class="px-1 py-0.2 text-[9px] rounded font-bold ${badgeColor}">${badgeText}</span>
+                    <span onclick="removeDevice('${dev.id}', event)" title="삭제" class="ml-0.5 text-slate-400 hover:text-rose-600 p-0.5">
                         <i class="fa-solid fa-xmark"></i>
                     </span>
                 `;
-
                 tabsContainer.appendChild(tabBtn);
             });
         }
@@ -532,21 +469,27 @@ function doPost(e) {
             const currentDev = appState.devices.find(d => d.id === appState.activeTabId);
             if (!currentDev) return;
 
-            const card = document.createElement('div');
-            card.className = 'space-y-6';
+            const isOver5 = isOver5Years(currentDev.mfgYM);
 
-            // Device Info Input Bar
+            const card = document.createElement('div');
+            card.className = 'space-y-4';
+
             card.innerHTML = `
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+                    
+                    <!-- 관리번호: WHE- 고정 접두사 인풋 그룹 -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">관리번호 <span class="text-rose-500">*</span></label>
-                        <input type="text" value="${currentDev.mgmtNum}" onchange="updateDeviceField('${currentDev.id}', 'mgmtNum', this.value)" 
-                               placeholder="예: ELEC-001" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none font-semibold">
+                        <label class="block text-[11px] font-bold text-slate-700 mb-0.5">관리번호 <span class="text-rose-500">*</span></label>
+                        <div class="flex items-center rounded-lg border border-slate-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-sky-500">
+                            <span class="px-2.5 py-1.5 bg-slate-100 text-slate-600 font-bold text-xs border-r border-slate-200 select-none">WHE-</span>
+                            <input type="text" value="${currentDev.mgmtNum}" onchange="updateDeviceField('${currentDev.id}', 'mgmtNum', this.value)" 
+                                   placeholder="001" class="w-full px-2 py-1.5 text-xs sm:text-sm outline-none font-semibold text-slate-800">
+                        </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">기기 종류 <span class="text-rose-500">*</span></label>
-                        <select onchange="updateDeviceField('${currentDev.id}', 'deviceType', this.value)" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none bg-white">
+                        <label class="block text-[11px] font-bold text-slate-700 mb-0.5">기기 종류 <span class="text-rose-500">*</span></label>
+                        <select onchange="updateDeviceField('${currentDev.id}', 'deviceType', this.value)" class="w-full px-2 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none bg-white">
                             ${DEVICE_CATEGORIES.map(cat => `
                                 <optgroup label="${cat.category}">
                                     ${cat.items.map(t => `<option value="${t}" ${currentDev.deviceType === t ? 'selected' : ''}>${t}</option>`).join('')}
@@ -556,38 +499,76 @@ function doPost(e) {
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">제조연월 <span class="text-rose-500">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-0.5">제조연월 <span class="text-rose-500">*</span></label>
                         <input type="month" value="${currentDev.mfgYM}" onchange="updateDeviceField('${currentDev.id}', 'mfgYM', this.value)" 
-                               class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
+                               class="w-full px-2 py-1.5 text-xs sm:text-sm border ${isOver5 ? 'border-rose-500 bg-rose-50 text-rose-900 font-bold' : 'border-slate-300'} rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">세부 사용 위치</label>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-0.5">세부 사용 위치</label>
                         <input type="text" value="${currentDev.subLocation}" onchange="updateDeviceField('${currentDev.id}', 'subLocation', this.value)" 
-                               placeholder="예: 3층 책상 밑" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
+                               placeholder="예: 본관 3층 사무실" class="w-full px-2.5 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none">
                     </div>
                 </div>
 
-                <!-- Quick Action Bar -->
+                <!-- 5년 초과 안내 경고 박스 -->
+                <div class="p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 border ${isOver5 ? 'bg-rose-50 border-rose-300 text-rose-800' : 'bg-amber-50/60 border-amber-200 text-amber-800'}">
+                    <i class="fa-solid ${isOver5 ? 'fa-triangle-exclamation text-rose-600 text-sm' : 'fa-circle-info text-amber-600'} shrink-0"></i>
+                    <span>
+                        ${isOver5 ? '⚠️ <strong>[경고]</strong> 제조연월로부터 5년을 초과한 기기로 <strong>[불량 / 반출 대상]</strong>입니다.' : 'ℹ️ 개인용 전열·전기기구는 제조연월로부터 5년 초과 시 반출 대상입니다.'}
+                    </span>
+                </div>
+
                 <div class="flex items-center justify-between pt-1 no-print">
-                    <span class="text-xs font-bold text-slate-600">공용 점검 항목 (7개)</span>
-                    <div class="flex items-center gap-2">
-                        <button onclick="setChecklistAll('${currentDev.id}', '양호')" class="px-2.5 py-1 text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 rounded-md font-semibold transition">
-                            <i class="fa-solid fa-check-double"></i> 전체 양호
+                    <span class="text-xs font-bold text-slate-600">점검 항목 (7개)</span>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="setChecklistAll('${currentDev.id}', '양호')" class="px-2 py-1 text-[11px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 rounded-md font-semibold">
+                            <i class="fa-solid fa-check-double"></i> 전체양호
                         </button>
-                        <button onclick="setChecklistAll('${currentDev.id}', 'N/A')" class="px-2.5 py-1 text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300 rounded-md font-semibold transition">
-                            전체 N/A
+                        <button onclick="setChecklistAll('${currentDev.id}', 'N/A')" class="px-2 py-1 text-[11px] bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-300 rounded-md font-semibold">
+                            전체N/A
                         </button>
                     </div>
                 </div>
 
-                <!-- Checklist Table -->
-                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <table class="w-full text-left text-xs sm:text-sm">
+                <!-- Responsive Checklist: Mobile Card & Desktop Table -->
+                <div class="space-y-2 sm:space-y-0 sm:border sm:border-slate-200 sm:rounded-xl sm:overflow-hidden sm:shadow-sm">
+                    
+                    <!-- Mobile Card View -->
+                    <div class="sm:hidden space-y-2">
+                        ${COMMON_CHECKLIST_ITEMS.map(item => {
+                            const currentVal = currentDev.checklist[item.id] || '양호';
+                            return `
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2">
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">${item.title}</div>
+                                        <div class="text-[11px] text-slate-500 mt-0.5">${item.desc}</div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-1 pt-1 border-t border-slate-100">
+                                        <button onclick="updateChecklistVal('${currentDev.id}', '${item.id}', '양호')" 
+                                                class="py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${currentVal === '양호' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600'}">
+                                            <i class="fa-solid fa-check text-[10px]"></i> 양호
+                                        </button>
+                                        <button onclick="updateChecklistVal('${currentDev.id}', '${item.id}', 'N/A')" 
+                                                class="py-2 rounded-lg text-xs font-bold transition flex items-center justify-center ${currentVal === 'N/A' ? 'bg-slate-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600'}">
+                                            N/A
+                                        </button>
+                                        <button onclick="updateChecklistVal('${currentDev.id}', '${item.id}', '불량')" 
+                                                class="py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${currentVal === '불량' ? 'bg-rose-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600'}">
+                                            <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> 불량
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Desktop Table View -->
+                    <table class="hidden sm:table w-full text-left text-sm">
                         <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                             <tr>
-                                <th class="py-3 px-4 w-2/5 sm:w-1/2">점검 항목 및 판정 기준</th>
-                                <th class="py-3 px-4 text-center w-2/5 sm:w-1/3">점검 결과 (선택)</th>
+                                <th class="py-3 px-4 w-1/2">점검 항목 및 판정 기준</th>
+                                <th class="py-3 px-4 text-center w-1/3">점검 결과</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-200 bg-white">
@@ -620,9 +601,9 @@ function doPost(e) {
                             }).join('')}
                         </tbody>
                     </table>
+
                 </div>
             `;
-
             container.appendChild(card);
         }
 
@@ -631,6 +612,7 @@ function doPost(e) {
             if (dev) {
                 dev[field] = value;
                 renderTabs();
+                renderTabContents();
                 updateSummaryBadge();
             }
         }
@@ -645,20 +627,14 @@ function doPost(e) {
 
         function updateSummaryBadge() {
             document.getElementById('summaryTotalCount').innerText = appState.devices.length;
+            let hasAnyDefect = appState.devices.some(d => isOver5Years(d.mfgYM) || Object.values(d.checklist).includes('불량'));
             
-            let hasAnyDefect = false;
-            appState.devices.forEach(d => {
-                if (Object.values(d.checklist).includes('불량')) {
-                    hasAnyDefect = true;
-                }
-            });
-
             const badge = document.getElementById('summaryStatusBadge');
             if (hasAnyDefect) {
-                badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800';
-                badge.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> 시정 필요 (불량 포함)';
+                badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800';
+                badge.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> 시정 필요';
             } else {
-                badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+                badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800';
                 badge.innerHTML = '<i class="fa-solid fa-shield-check mr-1"></i> 전 항목 양호';
             }
         }
@@ -674,35 +650,25 @@ function doPost(e) {
             const inspectionDate = document.getElementById('inspectionDate').value;
             const inspectorName = document.getElementById('inspectorName').value;
             const inspectionDept = document.getElementById('inspectionDept').value;
-            const inspectionLocation = document.getElementById('inspectionLocation').value;
             const overallRemarks = document.getElementById('overallRemarks').value;
 
-            // Overall Status Calc
-            let overallStatus = '양호';
-            appState.devices.forEach(d => {
-                if (Object.values(d.checklist).includes('불량')) {
-                    overallStatus = '불량 (시정필요)';
-                }
-            });
+            let overallStatus = appState.devices.some(d => isOver5Years(d.mfgYM) || Object.values(d.checklist).includes('불량')) ? '불량 (시정필요)' : '양호';
 
-            // Compact dynamic string summary of all devices
             const devicesSummaryArr = appState.devices.map((d, idx) => {
                 const itemDetails = COMMON_CHECKLIST_ITEMS.map((item, i) => `${i+1}항:${d.checklist[item.id] || '양호'}`).join(', ');
-                const devResult = Object.values(d.checklist).includes('불량') ? '불량' : '양호';
-                return `[기기${idx+1}] 번호:${d.mgmtNum} / 종류:${d.deviceType} / 제조년월:${d.mfgYM} / 위치:${d.subLocation || '미지정'} / 종합판정:${devResult} / 상세:(${itemDetails})`;
+                const isDef = isOver5Years(d.mfgYM) || Object.values(d.checklist).includes('불량');
+                const devResult = isDef ? '불량' : '양호';
+                return `[기기${idx+1}] 번호:WHE-${d.mgmtNum} / 종류:${d.deviceType} / 제조년월:${d.mfgYM} / 위치:${d.subLocation || '미지정'} / 종합판정:${devResult} / 상세:(${itemDetails})`;
             });
-
-            const devicesSummaryString = devicesSummaryArr.join(' \n\n ');
 
             return {
                 timestamp: new Date().toLocaleString('ko-KR'),
                 inspectionDate,
                 inspectorName,
                 inspectionDept,
-                inspectionLocation,
                 totalDeviceCount: appState.devices.length,
                 overallStatus,
-                devicesSummaryString,
+                devicesSummaryString: devicesSummaryArr.join(' \n\n '),
                 overallRemarks,
                 devicesRawData: appState.devices
             };
@@ -710,77 +676,35 @@ function doPost(e) {
 
         async function submitToGoogleSheets() {
             const payload = constructSingleRowPayload();
-
-            if (!payload.inspectionDate || !payload.inspectorName || !payload.inspectionDept || !payload.inspectionLocation) {
-                showToast('기본 정보(점검일자, 점검자 성명, 점검 부서, 설치 장소)를 모두 입력해주세요.', 'error');
+            if (!payload.inspectionDate || !payload.inspectorName || !payload.inspectionDept) {
+                showToast('기본 필수 정보(일자, 성명, 부서)를 입력해주세요.', 'error');
                 return;
             }
-
             if (!appState.googleScriptUrl) {
-                // Open script modal automatically if not configured
                 document.getElementById('scriptModal').classList.remove('hidden');
-                showToast('구글 시트 연동 URL이 설정되지 않았습니다. 먼저 URL을 설정해주세요.', 'error');
+                showToast('구글 시트 연동 URL을 설정해주세요.', 'error');
                 return;
             }
 
             const btn = document.getElementById('btnSubmitGoogle');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 전송 중...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
             try {
                 await fetch(appState.googleScriptUrl, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
-                showToast('구글 시트로 점검 결과가 1개 행으로 성공적으로 전송되었습니다!', 'success');
+                showToast('점검 결과가 성공적으로 전송되었습니다!', 'success');
             } catch (err) {
-                console.error('Submission error:', err);
-                showToast('구글 시트 전송 중 오류가 발생했습니다. Apps Script URL을 확인해주세요.', 'error');
+                showToast('전송 실패. URL을 확인해 주세요.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
-        }
-
-        function exportToCSV() {
-            const payload = constructSingleRowPayload();
-            let csvContent = "\uFEFF"; // UTF-8 BOM
-            
-            // CSV Header
-            csvContent += "제출일시,점검일자,점검자,점검부서,설치장소,총기기수,종합판정,기기점검요약데이터,종합비고\n";
-            
-            // CSV Row
-            const cleanText = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
-            
-            const row = [
-                cleanText(payload.timestamp),
-                cleanText(payload.inspectionDate),
-                cleanText(payload.inspectorName),
-                cleanText(payload.inspectionDept),
-                cleanText(payload.inspectionLocation),
-                payload.totalDeviceCount,
-                cleanText(payload.overallStatus),
-                cleanText(payload.devicesSummaryString),
-                cleanText(payload.overallRemarks)
-            ];
-
-            csvContent += row.join(",") + "\n";
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', `전열기구점검표_${payload.inspectionDate || '최신'}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast('CSV 파일이 다운로드 되었습니다.', 'success');
         }
 
         function saveToLocalStorage() {
@@ -789,14 +713,11 @@ function doPost(e) {
                     inspectionDate: document.getElementById('inspectionDate').value,
                     inspectorName: document.getElementById('inspectorName').value,
                     inspectionDept: document.getElementById('inspectionDept').value,
-                    inspectionLocation: document.getElementById('inspectionLocation').value,
                     overallRemarks: document.getElementById('overallRemarks').value,
                     devices: appState.devices
                 };
                 localStorage.setItem('elec_checklist_data', JSON.stringify(dataToSave));
-            } catch (e) {
-                console.warn('LocalStorage save error:', e);
-            }
+            } catch (e) {}
         }
 
         function loadFromLocalStorage() {
@@ -807,21 +728,16 @@ function doPost(e) {
                     if (parsed.inspectionDate) document.getElementById('inspectionDate').value = parsed.inspectionDate;
                     if (parsed.inspectorName) document.getElementById('inspectorName').value = parsed.inspectorName;
                     if (parsed.inspectionDept) document.getElementById('inspectionDept').value = parsed.inspectionDept;
-                    if (parsed.inspectionLocation) document.getElementById('inspectionLocation').value = parsed.inspectionLocation;
                     if (parsed.overallRemarks) document.getElementById('overallRemarks').value = parsed.overallRemarks;
-                    
                     if (Array.isArray(parsed.devices) && parsed.devices.length > 0) {
                         appState.devices = parsed.devices;
                         appState.activeTabId = appState.devices[0].id;
                         return;
                     }
                 }
-            } catch (e) {
-                console.warn('LocalStorage load error:', e);
-            }
+            } catch (e) {}
 
-            // Fallback initial device
-            const initDev = createNewDeviceObject('ELEC-2026-01');
+            const initDev = createNewDeviceObject('001');
             appState.devices = [initDev];
             appState.activeTabId = initDev.id;
         }
@@ -830,65 +746,53 @@ function doPost(e) {
             localStorage.removeItem('elec_checklist_data');
             document.getElementById('inspectorName').value = '';
             document.getElementById('inspectionDept').value = '';
-            document.getElementById('inspectionLocation').value = '';
             document.getElementById('overallRemarks').value = '';
             
-            const initDev = createNewDeviceObject('ELEC-2026-01');
+            const initDev = createNewDeviceObject('001');
             appState.devices = [initDev];
             appState.activeTabId = initDev.id;
             renderAll();
-            showToast('모든 입력 항목이 초기화되었습니다.', 'info');
+            showToast('모든 입력 항목 초기화됨', 'info');
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Set current date
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('inspectionDate').value = today;
-            document.getElementById('currentTimestamp').innerText = new Date().toLocaleDateString('ko-KR', {
-                year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
-            });
+            document.getElementById('inspectionDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('currentTimestamp').innerText = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
 
-            // Load saved data or defaults
             loadFromLocalStorage();
 
-            // Google Script URL setup
             if (appState.googleScriptUrl) {
                 document.getElementById('googleScriptUrl').value = appState.googleScriptUrl;
                 document.getElementById('googleSheetsAlert').classList.add('hidden');
             }
 
-            // Bind Event Listeners
             document.getElementById('btnAddDevice').addEventListener('click', addDevice);
             document.getElementById('btnSubmitGoogle').addEventListener('click', submitToGoogleSheets);
-            document.getElementById('btnExportCSV').addEventListener('click', exportToCSV);
             document.getElementById('btnPrint').addEventListener('click', () => window.print());
             document.getElementById('btnResetAll').addEventListener('click', resetAllData);
 
-            // Inputs change listener for local auto-save
-            ['inspectionDate', 'inspectorName', 'inspectionDept', 'inspectionLocation', 'overallRemarks'].forEach(id => {
+            document.getElementById('inspectionDate').addEventListener('change', () => {
+                renderAll();
+            });
+
+            ['inspectionDate', 'inspectorName', 'inspectionDept', 'overallRemarks'].forEach(id => {
                 document.getElementById(id).addEventListener('input', saveToLocalStorage);
             });
 
-            // Modal Trigger Events
-            document.getElementById('btnOpenScriptModal').addEventListener('click', () => {
-                document.getElementById('scriptModal').classList.remove('hidden');
-            });
-            document.getElementById('btnCloseScriptModal').addEventListener('click', () => {
-                document.getElementById('scriptModal').classList.add('hidden');
-            });
+            document.getElementById('btnOpenScriptModal').addEventListener('click', () => { document.getElementById('scriptModal').classList.remove('hidden'); });
+            document.getElementById('btnCloseScriptModal').addEventListener('click', () => { document.getElementById('scriptModal').classList.add('hidden'); });
 
             document.getElementById('btnSaveScriptUrl').addEventListener('click', () => {
                 const url = document.getElementById('googleScriptUrl').value.trim();
                 appState.googleScriptUrl = url;
                 localStorage.setItem('elec_gas_url', url);
                 document.getElementById('scriptModal').classList.add('hidden');
-                
                 if (url) {
                     document.getElementById('googleSheetsAlert').classList.add('hidden');
-                    showToast('구글시트 연동 URL이 성공적으로 저장되었습니다.', 'success');
+                    showToast('구글시트 연동 URL 저장 완료', 'success');
                 } else {
                     document.getElementById('googleSheetsAlert').classList.remove('hidden');
-                    showToast('연동 URL이 해제되었습니다.', 'info');
+                    showToast('연동 URL 해제됨', 'info');
                 }
             });
 
@@ -900,10 +804,9 @@ function doPost(e) {
                 tempTextArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(tempTextArea);
-                showToast('Apps Script 코드가 클립보드에 복사되었습니다.', 'success');
+                showToast('Apps Script 코드가 복사되었습니다.', 'success');
             });
 
-            // Render view
             renderAll();
         });
     </script>
